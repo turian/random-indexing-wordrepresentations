@@ -16,6 +16,14 @@ Another implementation (in Java) is semanticvectors:
     http://code.google.com/p/semanticvectors/
 
 
+This code is based upon my neural language model code
+(http://github.com/turian/neural-language-model), so it shares similar
+idioms for the data it expects. For example, instead of building a
+vocabulary on-the-fly, we assume that the vocabulary has been preextracted
+and will be read in. Also, we assume that there is one-sentence-per-line
+in the training input.
+
+
 REQUIREMENTS:
     * My python common code:
         http://github.com/turian/common
