@@ -8,5 +8,14 @@ Induce word representations using random indexing (RI).
 For information about random indexing, see:
     http://www.sics.se/~mange/random_indexing.html
 
+You can control the hyperparameters by editing
+    hyperparameters.random-indexing.yaml
+Or you can control the hyperparameters using command-line options.
+
 Another implementation (in Java) is semanticvectors:
     http://code.google.com/p/semanticvectors/
+
+
+REQUIREMENTS:
+    * My python common code:
+        http://github.com/turian/common
