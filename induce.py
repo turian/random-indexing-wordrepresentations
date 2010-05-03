@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import logging
 import sys
 import string
 from common.file import myopen
@@ -8,6 +9,8 @@ from common.str import percent
 
 import numpy
 import random
+
+import diagnostics
 
 def trainingsentences():
     """
@@ -28,8 +31,8 @@ def trainingsentences():
         yield tokens
         count += 1
         if count % 1000 == 0:
-            print >> sys.stderr, "Read %d lines from training file %s..." % (count, filename)
-            print >> sys.stderr, stats()
+            logging.info("Read %d lines from training file %s..." % (count, filename))
+            logging.info(stats())
 
 def generate_context_vectors():
     """
@@ -42,13 +45,13 @@ def generate_context_vectors():
 
     NONZEROS = int(HYPERPARAMETERS["TERNARY_NON_ZERO_PERCENT"] * HYPERPARAMETERS["REPRESENTATION_SIZE"] + 0.5)
 
-    print >> sys.stderr, "Generating %d nonzeros per %d-length random context vector" % (NONZEROS, HYPERPARAMETERS["REPRESENTATION_SIZE"])
+    logging.info("Generating %d nonzeros per %d-length random context vector" % (NONZEROS, HYPERPARAMETERS["REPRESENTATION_SIZE"]))
 
     # Generate one set of context vectors per list in HYPERPARAMETERS["CONTEXT_TYPES"]
     context_vectors = []
     for i in range(len(HYPERPARAMETERS["CONTEXT_TYPES"])):
-        print >> sys.stderr, "Generated %s context matrixes" % (percent(i, len(HYPERPARAMETERS["CONTEXT_TYPES"])))
-        print >> sys.stderr, stats()
+        logging.info("Generated %s context matrixes" % (percent(i, len(HYPERPARAMETERS["CONTEXT_TYPES"]))))
+        logging.info(stats())
         thiscontext = numpy.zeros((wordmap.len, HYPERPARAMETERS["REPRESENTATION_SIZE"]))
         for j in range(wordmap.len):
             idxs = range(HYPERPARAMETERS["REPRESENTATION_SIZE"])
@@ -58,8 +61,8 @@ def generate_context_vectors():
 #            print thiscontext[j]
         context_vectors.append(thiscontext)
 
-    print >> sys.stderr, "Done generating %s context matrixes" % (percent(i, len(HYPERPARAMETERS["CONTEXT_TYPES"])))
-    print >> sys.stderr, stats()
+    logging.info("Done generating %s context matrixes" % (percent(i, len(HYPERPARAMETERS["CONTEXT_TYPES"]))))
+    logging.info(stats())
     return context_vectors
 
 if __name__ == "__main__":
@@ -72,12 +75,31 @@ if __name__ == "__main__":
     import common.dump
     print >> sys.stderr, myyaml.dump(common.dump.vars_seq([hyperparameters]))
 
+    rundir = common.dump.create_canonical_directory(HYPERPARAMETERS)
+
+    import os.path, os
+    logfile = os.path.join(rundir, "log")
+    if newkeystr != "":
+        verboselogfile = os.path.join(rundir, "log%s" % newkeystr)
+        print >> sys.stderr, "Logging to %s, and creating link %s" % (logfile, verboselogfile)
+        os.system("ln -s log %s " % (verboselogfile))
+    else:
+        print >> sys.stderr, "Logging to %s, not creating any link because of default settings" % logfile
+
+    logging.basicConfig(filename=logfile, filemode="w", level=logging.DEBUG)
+    logging.info("INITIALIZING TRAINING STATE")
+    logging.info(myyaml.dump(common.dump.vars_seq([hyperparameters])))
+
+
+    import random, numpy
     random.seed(HYPERPARAMETERS["RANDOM_SEED"])
+    numpy.random.seed(HYPERPARAMETERS["RANDOM_SEED"])
     from vocabulary import wordmap
 
-    context_vectors = generate_context_vectors()
-
+    cnt = 0
     random_representations = numpy.zeros((wordmap.len, HYPERPARAMETERS["REPRESENTATION_SIZE"]))
+
+    context_vectors = generate_context_vectors()
 
     for tokens in trainingsentences():
         for i in range(len(tokens)):
@@ -86,4 +108,9 @@ if __name__ == "__main__":
                     tokidx = i + k
                     if tokidx < 0 or tokidx >= len(tokens): continue
                     random_representations[tokens[i]] += context_vectors[j][tokens[tokidx]]
+        cnt += 1
+        if cnt % 10000 == 0:
+            diagnostics.diagnostics(cnt, random_representations)
+        if cnt % 100000 == 0:
+            diagnostics.visualizedebug(cnt, random_representations, rundir, newkeystr)
 #        print tokens
