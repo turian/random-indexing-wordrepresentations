@@ -1,0 +1,12 @@
+random-indexing-wordrepresentations
+-----------------------------------
+
+    by Joseph Turian
+
+Induce word representations using random indexing (RI).
+
+For information about random indexing, see:
+    http://www.sics.se/~mange/random_indexing.html
+
+Another implementation (in Java) is semanticvectors:
+    http://code.google.com/p/semanticvectors/
