@@ -41,26 +41,30 @@ def generate_context_vectors():
 
     HYPERPARAMETERS = common.hyperparameters.read("random-indexing")
     from vocabulary import wordmap
-    assert HYPERPARAMETERS["RANDOMIZATION_TYPE"] == "ternary"
 
-    NONZEROS = int(HYPERPARAMETERS["TERNARY_NON_ZERO_PERCENT"] * HYPERPARAMETERS["REPRESENTATION_SIZE"] + 0.5)
-
-    logging.info("Generating %d nonzeros per %d-length random context vector" % (NONZEROS, HYPERPARAMETERS["REPRESENTATION_SIZE"]))
-
-    # Generate one set of context vectors per list in HYPERPARAMETERS["CONTEXT_TYPES"]
-    context_vectors = []
-    for i in range(len(HYPERPARAMETERS["CONTEXT_TYPES"])):
-        logging.info("Generated %s context matrixes" % (percent(i, len(HYPERPARAMETERS["CONTEXT_TYPES"]))))
-        logging.info(stats())
-        thiscontext = numpy.zeros((wordmap.len, HYPERPARAMETERS["REPRESENTATION_SIZE"]))
-        for j in range(wordmap.len):
-            idxs = range(HYPERPARAMETERS["REPRESENTATION_SIZE"])
-            random.shuffle(idxs)
-            for k in idxs[:NONZEROS]:
-                thiscontext[j][k] = random.choice([-1, +1])
-#            print thiscontext[j]
-        context_vectors.append(thiscontext)
-
+    if HYPERPARAMETERS["RANDOMIZATION_TYPE"] == "gaussian":
+        context_vectors = [numpy.random.normal(size=(wordmap.len, HYPERPARAMETERS["REPRESENTATION_SIZE"])) for i in range(len(HYPERPARAMETERS["CONTEXT_TYPES"]))]
+    elif HYPERPARAMETERS["RANDOMIZATION_TYPE"] == "ternary":
+        NONZEROS = int(HYPERPARAMETERS["TERNARY_NON_ZERO_PERCENT"] * HYPERPARAMETERS["REPRESENTATION_SIZE"] + 0.5)
+    
+        logging.info("Generating %d nonzeros per %d-length random context vector" % (NONZEROS, HYPERPARAMETERS["REPRESENTATION_SIZE"]))
+    
+        # Generate one set of context vectors per list in HYPERPARAMETERS["CONTEXT_TYPES"]
+        context_vectors = []
+        for i in range(len(HYPERPARAMETERS["CONTEXT_TYPES"])):
+            logging.info("Generated %s context matrixes" % (percent(i, len(HYPERPARAMETERS["CONTEXT_TYPES"]))))
+            logging.info(stats())
+            thiscontext = numpy.zeros((wordmap.len, HYPERPARAMETERS["REPRESENTATION_SIZE"]))
+            for j in range(wordmap.len):
+                idxs = range(HYPERPARAMETERS["REPRESENTATION_SIZE"])
+                random.shuffle(idxs)
+                for k in idxs[:NONZEROS]:
+                    thiscontext[j][k] = random.choice([-1, +1])
+    #            print thiscontext[j]
+            context_vectors.append(thiscontext)
+    else:
+        assert 0
+    
     logging.info("Done generating %s context matrixes" % (percent(i, len(HYPERPARAMETERS["CONTEXT_TYPES"]))))
     logging.info(stats())
     return context_vectors
@@ -111,6 +115,24 @@ if __name__ == "__main__":
         cnt += 1
         if cnt % 10000 == 0:
             diagnostics.diagnostics(cnt, random_representations)
-        if cnt % 100000 == 0:
-            diagnostics.visualizedebug(cnt, random_representations, rundir, newkeystr)
-#        print tokens
+
+    logging.info("DONE. Dividing embeddings by their standard deviation...")
+    random_representations = random_representations * (1. / numpy.std(random_representations))
+    diagnostics.diagnostics(cnt, random_representations)
+    diagnostics.visualizedebug(cnt, random_representations, rundir, newkeystr)
+
+    outfile = os.path.join(rundir, "random_representations")
+    if newkeystr != "":
+        verboseoutfile = os.path.join(rundir, "random_representations%s" % newkeystr)
+        logging.info("Writing representations to %s, and creating link %s" % (outfile, verboseoutfile))
+        os.system("ln -s random_representations %s " % (verboseoutfile))
+    else:
+        logging.info("Writing representations to %s, not creating any link because of default settings" % outfile)
+
+    o = open(outfile, "wt")
+    from vocabulary import wordmap
+    for i in range(wordmap.len):
+        o.write(wordmap.str(i) + " ")
+        for v in random_representations[i]:
+            o.write(`v` + " ")
+        o.write("\n")

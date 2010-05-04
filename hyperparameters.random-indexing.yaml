@@ -16,12 +16,13 @@ INCLUDE_UNKNOWN_WORD: True
 RUN_NAME: "rcv1.case-intact"
 VOCABULARY_SIZE: 268810
 
-REPRESENTATION_SIZE: 100
+REPRESENTATION_SIZE: 10
 
 # Either "ternary" (-1, 0, +1) or "gaussian" random matrix. (gaussian not implemented yet)
-RANDOMIZATION_TYPE: ternary
+#RANDOMIZATION_TYPE: ternary
+RANDOMIZATION_TYPE: gaussian
 
 # Percentage of each context (random) representation that is non-zero.
-TERNARY_NON_ZERO_PERCENT: 0.05
+TERNARY_NON_ZERO_PERCENT: 0.1
 
 RANDOM_SEED: 0
