@@ -18,11 +18,12 @@ VOCABULARY_SIZE: 268810
 
 REPRESENTATION_SIZE: 10
 
-# Either "ternary" (-1, 0, +1) or "gaussian" random matrix. (gaussian not implemented yet)
+# Either "ternary" (-1, 0, +1) or "gaussian" random matrix.
 #RANDOMIZATION_TYPE: ternary
-RANDOMIZATION_TYPE: gaussian
+#RANDOMIZATION_TYPE: gaussian
+RANDOMIZATION_TYPE: ""
 
 # Percentage of each context (random) representation that is non-zero.
-TERNARY_NON_ZERO_PERCENT: 0.1
+TERNARY_NON_ZERO_PERCENT: 0.0
 
 RANDOM_SEED: 0
