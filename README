@@ -15,6 +15,10 @@ Or you can control the hyperparameters using command-line options.
 Another implementation (in Java) is semanticvectors:
     http://code.google.com/p/semanticvectors/
 
+See also:
+    http://github.com/turian/pyrandomprojection
+a generic library for transforming a Python dictionary into a
+low-dimensional numpy array.
 
 This code is based upon my neural language model code
 (http://github.com/turian/neural-language-model), so it shares similar
